@@ -1,16 +1,16 @@
-// Accepts any of: { owned: boolean }, { name: string }, { position: number }.
+// Accepts any of: owned, name, dex, indent, position.
 export default defineEventHandler(async (event) => {
   const db = useDb(event)
   const id = parseId(event)
-  const body = await readBody<{ owned?: unknown; name?: unknown; position?: unknown }>(event)
+  const body = await readBody<{ owned?: unknown; name?: unknown; dex?: unknown; indent?: unknown; position?: unknown }>(event)
 
-  if (body.owned !== undefined) {
-    if (typeof body.owned !== 'boolean') throw createError({ statusCode: 400, message: 'owned must be true or false' })
-    await db.prepare('UPDATE entries SET owned = ? WHERE id = ?').bind(body.owned ? 1 : 0, id).run()
-  }
-  if (body.name !== undefined) {
-    await db.prepare('UPDATE entries SET name = ? WHERE id = ?').bind(parseName(body.name), id).run()
-  }
+  const sets: string[] = []
+  const values: unknown[] = []
+  if (body.owned !== undefined) { sets.push('owned = ?'); values.push(parseBool(body.owned, 'owned') ? 1 : 0) }
+  if (body.indent !== undefined) { sets.push('indent = ?'); values.push(parseBool(body.indent, 'indent') ? 1 : 0) }
+  if (body.name !== undefined) { sets.push('name = ?'); values.push(parseName(body.name)) }
+  if (body.dex !== undefined) { sets.push('dex = ?'); values.push(parseDex(body.dex)) }
+  if (sets.length) await db.prepare(`UPDATE entries SET ${sets.join(', ')} WHERE id = ?`).bind(...values, id).run()
   if (body.position !== undefined) await moveEntry(db, id, body.position)
 
   return toEntry(await getEntry(db, id))

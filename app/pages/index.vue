@@ -8,6 +8,9 @@ const gen = usePersisted('gen', 1)
 const sort = usePersisted<'dex' | 'az'>('sort', 'dex')
 const missingOnly = usePersisted('missingOnly', false)
 const q = useState('q', () => '')
+// Locked by default so a stray tap at the shop can't change the list. Not
+// saved on the device: every visit starts locked.
+const marking = useState('marking', () => false)
 
 onMounted(() => load().catch(() => {}))
 
@@ -17,29 +20,19 @@ const inGen = computed(() => entries.value.filter((e) => e.gen === gen.value))
 const ownedCount = computed(() => inGen.value.filter((e) => e.owned).length)
 const pct = computed(() => (inGen.value.length ? Math.round((ownedCount.value / inGen.value.length) * 100) : 0))
 
-// Regional forms are entries that repeat a Pokédex number already seen in
-// their generation; they get indented under the base form.
-const formIds = computed(() => {
-  const seen = new Set<string>()
-  const ids = new Set<number>()
-  for (const e of entries.value) {
-    if (e.dex == null) continue
-    const key = `${e.gen}:${e.dex}`
-    if (seen.has(key)) ids.add(e.id)
-    else seen.add(key)
-  }
-  return ids
-})
-
 const items = computed(() => {
   let list = searching.value ? entries.value.filter((e) => matches(e, q.value)) : inGen.value
   if (missingOnly.value) list = list.filter((e) => !e.owned)
   if (sort.value === 'az') list = [...list].sort((a, b) => byName.compare(a.name, b.name))
   return list
 })
-const indent = (e: Entry) => sort.value === 'dex' && !searching.value && formIds.value.has(e.id)
+const indent = (e: Entry) => e.indent && sort.value === 'dex' && !searching.value
 
 const popId = ref<number | null>(null)
+function tap(e: Entry) {
+  if (marking.value) toggle(e)
+}
+
 function toggle(e: Entry) {
   const owned = !e.owned
   setOwned(e, owned)
@@ -63,8 +56,12 @@ function pickGen(id: number) {
       <div class="top">
         <span class="brand">Binder Dex</span>
         <ThemeButton />
+        <button type="button" class="btn" :class="{ primary: marking }" :aria-pressed="marking" @click="marking = !marking">
+          {{ marking ? 'Done' : 'Mark' }}
+        </button>
         <NuxtLink class="btn" to="/edit">Edit list</NuxtLink>
       </div>
+      <div v-if="marking" class="marking-bar" role="status">Marking is on. Tap to switch Have / Need.</div>
       <GenChips :current="searching ? 0 : gen" @pick="pickGen" />
       <div class="tools">
         <div class="searchbox">
@@ -99,14 +96,15 @@ function pickGen(id: number) {
     </div>
 
     <div v-if="!loaded" class="loading">Loading your Pokédex…</div>
-    <ol v-else class="list">
+    <ol v-else class="list" :class="{ locked: !marking }">
       <li v-for="e in items" :key="e.id">
         <button
           type="button"
           class="row"
           :class="[e.owned ? 'own' : 'need', { form: indent(e), pop: popId === e.id }]"
-          :aria-pressed="e.owned"
-          @click="toggle(e)"
+          :aria-pressed="marking ? e.owned : undefined"
+          :aria-disabled="!marking"
+          @click="tap(e)"
           @animationend="popId = null"
         >
           <span class="box" aria-hidden="true" />

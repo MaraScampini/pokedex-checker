@@ -5,4 +5,5 @@ export interface Entry {
   gen: number
   position: number
   owned: boolean
+  indent: boolean
 }

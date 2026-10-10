@@ -14,10 +14,12 @@
   "dependencies": {
     "@nuxtjs/google-fonts": "^3.2.0",
     "nuxt": "^4.6.1",
+    "sortablejs": "^1.15.7",
     "vue": "^3.5.43"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261010.1",
+    "@types/sortablejs": "^1.15.9",
     "nitro-cloudflare-dev": "^0.2.2",
     "typescript": "~5.9.3",
     "vue-tsc": "^3.3.13",
