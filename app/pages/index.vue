@@ -24,9 +24,10 @@ const ownedCount = computed(() => inGen.value.filter((e) => e.owned).length)
 const pct = computed(() => (inGen.value.length ? Math.round((ownedCount.value / inGen.value.length) * 100) : 0))
 
 const items = computed(() => {
-  let list = searching.value ? entries.value.filter((e) => matches(e, q.value)) : inGen.value
+  // Search stays inside the current tab; the All tab searches everything.
+  let list = searching.value ? inGen.value.filter((e) => matches(e, q.value)) : inGen.value
   if (missingOnly.value) list = list.filter((e) => !e.owned)
-  if (sort.value === 'az') list = [...list].sort((a, b) => byName.compare(a.name, b.name))
+  if (sort.value === 'az') list = [...list].sort((a, b) => byName.compare(listName(a.name), listName(b.name)))
   return list
 })
 const indent = (e: Entry) => e.indent && sort.value === 'dex' && !searching.value
@@ -48,7 +49,6 @@ function toggle(e: Entry) {
 
 function pickGen(id: number) {
   gen.value = id
-  q.value = ''
   window.scrollTo(0, 0)
 }
 </script>
@@ -65,7 +65,7 @@ function pickGen(id: number) {
         <NuxtLink class="btn" to="/edit">Edit list</NuxtLink>
       </div>
       <div v-if="marking" class="marking-bar" role="status">Marking is on. Tap to switch Have / Need.</div>
-      <GenChips all :current="searching ? -1 : gen" @pick="pickGen" />
+      <GenChips all :current="gen" @pick="pickGen" />
       <div class="tools">
         <div class="searchbox">
           <input
@@ -73,10 +73,10 @@ function pickGen(id: number) {
             v-model="q"
             class="field"
             type="search"
-            placeholder="Search name or #"
+            :placeholder="allGens ? 'Search all: name or #' : `Search Gen ${g.roman}: name or #`"
             autocomplete="off"
             enterkeyhint="search"
-            aria-label="Search every generation"
+            :aria-label="allGens ? 'Search every generation' : `Search Gen ${g.roman}`"
           >
           <button v-if="q" type="button" class="clear" aria-label="Clear search" @click="q = ''">✕</button>
         </div>
@@ -85,7 +85,7 @@ function pickGen(id: number) {
         </button>
       </div>
       <div class="sum">
-        <span v-if="searching">{{ items.length }} result{{ items.length === 1 ? '' : 's' }} in every generation</span>
+        <span v-if="searching">{{ items.length }} result{{ items.length === 1 ? '' : 's' }} in {{ allGens ? 'every generation' : `Gen ${g.roman}` }}</span>
         <span v-else-if="allGens">All generations · I–IX</span>
         <span v-else>Gen {{ g.roman }} · {{ g.region }}</span>
         <div class="sum-right">
@@ -113,12 +113,12 @@ function pickGen(id: number) {
         >
           <span class="box" aria-hidden="true" />
           <span class="no">{{ e.dex ? '#' + pad(e.dex) : '—' }}</span>
-          <span class="nm">{{ e.name }}<small v-if="searching || allGens">Gen {{ genInfo(e.gen).roman }}</small></span>
+          <span class="nm">{{ listName(e.name) }}<small v-if="allGens">Gen {{ genInfo(e.gen).roman }}</small></span>
           <span class="st">{{ e.owned ? 'Have' : 'Need' }}</span>
         </button>
       </li>
       <li v-if="!items.length" class="empty">
-        <template v-if="searching">No Pokémon match “{{ q.trim() }}”{{ missingOnly ? ' that you still need' : '' }}. Try the Pokédex number.</template>
+        <template v-if="searching">No Pokémon in {{ allGens ? 'any generation' : `Gen ${g.roman}` }} match “{{ q.trim() }}”{{ missingOnly ? ' that you still need' : '' }}.<template v-if="!allGens"> Try the All tab.</template></template>
         <template v-else-if="missingOnly && inGen.length">Nothing missing. {{ label }} {{ allGens ? 'are' : 'is' }} complete.</template>
         <template v-else>{{ label }} {{ allGens ? 'have' : 'has' }} no Pokémon yet. Add them from Edit list.</template>
       </li>
