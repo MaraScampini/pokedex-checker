@@ -1,0 +1,438 @@
+<title>Binder Dex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Chakra+Petch:wght@500;600;700&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=JetBrains+Mono:wght@500;700&family=Manrope:wght@400..800&display=swap">
+<style>
+/* Layout: page chrome (title, design switcher) + a stage pairing a working phone mockup with notes on that direction. */
+:root{
+  --bg:#EDF0F5; --surface:#FFFFFF; --ink:#141A2C; --muted:#5A6378; --line:#D5DAE5; --accent:#D8320F;
+  --f-display:"Bricolage Grotesque",system-ui,sans-serif;
+  --f-body:"Figtree",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#0F1320; --surface:#181D2E; --ink:#E8EBF4; --muted:#9AA2B8; --line:#2A3148; --accent:#FF6A45; color-scheme:dark; }
+}
+:root[data-theme="dark"]{ --bg:#0F1320; --surface:#181D2E; --ink:#E8EBF4; --muted:#9AA2B8; --line:#2A3148; --accent:#FF6A45; color-scheme:dark; }
+
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.5}
+.wrap{max-width:1160px;margin:0 auto;padding:36px 20px 72px}
+.hd h1{font-family:var(--f-display);font-weight:800;font-size:clamp(34px,6vw,56px);letter-spacing:-.03em;line-height:1;margin:0 0 10px}
+.hd h1 span{color:var(--accent)}
+.hd p{margin:0;max-width:62ch;color:var(--muted);font-size:16px}
+
+.switch{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:28px 0 28px}
+.switch button{font:inherit;color:inherit;text-align:left;cursor:pointer;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;grid-template-columns:auto 1fr;column-gap:12px;align-items:center}
+.switch .ltr{font-family:var(--f-display);font-weight:800;font-size:28px;line-height:1;color:var(--muted);grid-row:span 2}
+.switch b{font-family:var(--f-display);font-size:17px;font-weight:700}
+.switch small{color:var(--muted);font-size:13px;line-height:1.3}
+.switch button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.switch button[aria-pressed="true"] .ltr{color:var(--accent)}
+.switch button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.stage{display:grid;grid-template-columns:400px 1fr;gap:48px;align-items:start}
+.phone{width:400px;max-width:100%;height:800px;border-radius:50px;padding:12px;background:#0A0C12;box-shadow:0 30px 60px -30px rgba(10,14,30,.55),0 0 0 1px #262a36 inset}
+.notes h2{font-family:var(--f-display);font-size:34px;font-weight:800;letter-spacing:-.02em;margin:6px 0 6px;text-wrap:balance}
+.notes .tag{font-size:17px;color:var(--muted);margin:0 0 18px}
+.notes .pitch{max-width:58ch;margin:0 0 22px}
+.notes dl{display:grid;grid-template-columns:150px 1fr;gap:12px 18px;margin:0 0 30px;padding:18px 0;border-block:1px solid var(--line)}
+.notes dt{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding-top:2px}
+.notes dd{margin:0}
+.notes h3{font-family:var(--f-display);font-size:18px;margin:0 0 10px}
+.notes ul{margin:0 0 26px;padding-left:18px;display:grid;gap:4px}
+.notes .fine{font-size:13px;color:var(--muted);max-width:60ch}
+
+@media (max-width:960px){
+  .stage{grid-template-columns:1fr;gap:32px}
+  .phone{margin:0 auto}
+}
+@media (max-width:620px){
+  .switch{grid-template-columns:1fr}
+  .switch button{padding:10px 14px}
+  .phone{width:100%;height:82vh;min-height:560px;padding:0;border-radius:22px;background:none;box-shadow:none}
+  .phone .screen{border-radius:22px;border:1px solid var(--line)}
+  .notes dl{grid-template-columns:1fr;gap:4px}
+  .notes dd{margin-bottom:10px}
+}
+
+/* ---------- Shared screen scaffolding (each design sets the --s-* tokens) ---------- */
+.screen{height:100%;border-radius:38px;overflow:hidden;background:var(--s-bg);color:var(--s-ink);font-family:var(--s-font);display:flex;flex-direction:column;position:relative;font-size:15px;line-height:1.35}
+.screen button{font:inherit;color:inherit;cursor:pointer}
+.screen .body{flex:1;overflow-y:auto;overscroll-behavior:contain;min-height:0}
+.screen .top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:24px 18px 10px}
+.screen .gens{display:flex;gap:6px;overflow-x:auto;padding:4px 18px 10px;scrollbar-width:none;flex-shrink:0}
+.screen .gens::-webkit-scrollbar{display:none}
+.screen input,.screen select{font:inherit;color:var(--s-ink);background:var(--s-surface);border:1.5px solid var(--s-line);border-radius:10px;padding:10px 12px;min-width:0}
+.screen input:focus{outline:none;border-color:var(--s-accent)}
+.screen :focus-visible{outline:2px solid var(--s-accent);outline-offset:2px}
+.screen .tools{display:flex;gap:8px;padding:0 18px 10px;flex-shrink:0}
+.screen .tools input{flex:1}
+.screen .toggle{border:1.5px solid var(--s-line);background:var(--s-surface);border-radius:10px;padding:0 12px;white-space:nowrap;font-weight:700;font-size:13px}
+.screen .empty{padding:40px 24px;text-align:center;color:var(--s-muted)}
+.screen .partial{padding:14px 18px 24px;font-size:12px;color:var(--s-muted)}
+.screen .toast{position:absolute;left:16px;right:16px;bottom:22px;padding:12px 14px;border-radius:12px;background:var(--s-ink);color:var(--s-bg);font-size:13px;font-weight:600;z-index:5}
+.pop{animation:pop .28s ease-out}
+@keyframes pop{0%{transform:scale(.96)}60%{transform:scale(1.02)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.pop{animation:none}}
+
+/* ---------- Admin (shared, themed by tokens) ---------- */
+.screen .back{background:none;border:0;font-weight:700;color:var(--s-accent);padding:4px 0}
+.screen .add{margin:0 16px 10px;padding:12px;border-radius:12px;background:var(--s-surface);border:1.5px solid var(--s-line);display:grid;grid-template-columns:72px 1fr;gap:8px;flex-shrink:0}
+.screen .add-h{grid-column:1/-1;font-weight:700;font-size:13px}
+.screen .add .r2{grid-column:1/-1;display:flex;gap:8px}
+.screen .add select{flex:1}
+.screen .add button{background:var(--s-accent);color:var(--s-on-accent);border:0;border-radius:10px;padding:0 18px;font-weight:700}
+.screen .ahint{font-size:12px;color:var(--s-muted);padding:2px 18px 8px}
+.screen .alist{list-style:none;margin:0;padding:0 12px 10px;display:flex;flex-direction:column;gap:6px}
+.screen .arow{display:grid;grid-template-columns:22px 44px 1fr auto;align-items:center;gap:6px;padding:5px 6px 5px 10px;background:var(--s-surface);border:1px solid var(--s-line);border-radius:10px}
+.screen .arow .pos{font-family:var(--s-mono);font-size:11px;color:var(--s-muted)}
+.screen .arow .no{font-family:var(--s-mono);font-size:12px}
+.screen .nmw{display:flex;align-items:center;gap:4px;min-width:0}
+.screen .aname{padding:6px 6px;border-radius:6px;font-size:14px;border-color:transparent;background:transparent;width:100%}
+.screen .aname:focus{border-color:var(--s-line);background:var(--s-bg)}
+.screen .ftag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-radius:4px;background:var(--s-bg);color:var(--s-muted);flex-shrink:0}
+.screen .ctrls{display:flex;gap:4px}
+.screen .ctrls button{width:32px;height:32px;border-radius:8px;border:1px solid var(--s-line);background:var(--s-bg);font-size:14px;padding:0}
+.screen .ctrls .del{color:var(--s-need)}
+.screen .ctrls .del.confirm{width:auto;padding:0 8px;background:var(--s-need);border-color:var(--s-need);color:#fff;font-size:12px;font-weight:700}
+.screen .resync{margin:4px 12px 24px;width:calc(100% - 24px);padding:12px;border-radius:10px;border:1.5px dashed var(--s-line);background:transparent;font-weight:700}
+
+/* ---------- A · Checklist ---------- */
+.dA{--s-bg:#F3F6FC;--s-surface:#FFFFFF;--s-ink:#14204F;--s-muted:#66719A;--s-line:#D2DAEC;--s-accent:#2443B8;--s-on-accent:#FFFFFF;--s-own:#2443B8;--s-need:#D3372A;
+  --s-font:"Atkinson Hyperlegible",system-ui,sans-serif;--s-mono:"IBM Plex Mono",ui-monospace,monospace}
+.dA .brand{font-family:var(--s-mono);font-weight:600;letter-spacing:.1em;text-transform:uppercase;font-size:13px}
+.dA .edit{border:1.5px solid var(--s-line);background:var(--s-surface);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:700}
+.dA .chip{display:flex;flex-direction:column;align-items:center;min-width:58px;padding:6px 8px;border:1.5px solid var(--s-line);border-radius:8px;background:var(--s-surface)}
+.dA .chip b{font-family:var(--s-mono);font-size:15px;line-height:1.2}
+.dA .chip small{font-size:10px;color:var(--s-muted)}
+.dA .chip.on{background:var(--s-ink);color:#FFFFFF;border-color:var(--s-ink)}
+.dA .chip.on small{color:#C6D0F0}
+.dA .toggle.on{background:var(--s-need);border-color:var(--s-need);color:#FFFFFF}
+.dA .sum{display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:6px;padding:8px 18px 12px;border-bottom:2px solid var(--s-ink);font-size:13px;flex-shrink:0}
+.dA .sum b{font-family:var(--s-mono);font-size:17px}
+.dA .bar{grid-column:1/-1;height:6px;background:var(--s-line);border-radius:3px;overflow:hidden}
+.dA .bar i{display:block;height:100%;background:var(--s-own)}
+.dA .list{list-style:none;margin:0;padding:0}
+.dA .row{width:100%;display:grid;grid-template-columns:22px 50px 1fr auto;align-items:center;gap:10px;padding:11px 18px;border:0;border-bottom:1px solid var(--s-line);background:transparent;text-align:left}
+.dA .row.form{padding-left:36px;background:rgba(36,67,184,.035)}
+.dA .box{width:22px;height:22px;border:2px solid var(--s-ink);border-radius:4px;display:grid;place-items:center}
+.dA .row.own .box{background:var(--s-own);border-color:var(--s-own)}
+.dA .row.own .box::after{content:"";width:6px;height:11px;border:solid #FFFFFF;border-width:0 2.5px 2.5px 0;transform:translateY(-1px) rotate(45deg)}
+.dA .no{font-family:var(--s-mono);font-size:13px;color:var(--s-muted)}
+.dA .nm{font-size:16px;font-weight:700;min-width:0}
+.dA .nm small{font-family:var(--s-mono);font-size:11px;color:var(--s-muted);font-weight:500;margin-left:6px}
+.dA .st{font-family:var(--s-mono);font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:4px}
+.dA .row.own .st{color:var(--s-own)}
+.dA .row.need .st{color:#FFFFFF;background:var(--s-need)}
+
+/* ---------- B · Binder pages ---------- */
+.dB{--s-bg:#DCE1E8;--s-surface:#F7F9FB;--s-ink:#1B1E24;--s-muted:#5C6471;--s-line:#A9B2BE;--s-accent:#1B1E24;--s-on-accent:#FFCB05;--s-own:#FFCB05;--s-need:#D9363E;
+  --s-font:"Archivo",system-ui,sans-serif;--s-mono:"JetBrains Mono",ui-monospace,monospace}
+.dB .brand{font-weight:800;font-stretch:125%;font-size:21px;letter-spacing:-.01em}
+.dB .edit{background:var(--s-ink);color:var(--s-own);border:0;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:700;font-stretch:110%}
+.dB .gens{gap:3px;padding-bottom:0;border-bottom:3px solid var(--s-ink)}
+.dB .chip{padding:8px 12px 7px;border-radius:9px 9px 0 0;background:#C3CAD4;border:0;font-weight:800;font-stretch:115%;font-size:14px;white-space:nowrap}
+.dB .chip small{font-weight:500;font-stretch:100%;font-size:11px;margin-left:4px;opacity:.75}
+.dB .chip.on{background:var(--s-ink);color:var(--s-own)}
+.dB .meta{display:flex;justify-content:space-between;padding:10px 18px 8px;font-size:12px;color:var(--s-muted);font-family:var(--s-mono);flex-shrink:0}
+.dB .meta b{color:var(--s-ink)}
+.dB .toggle.on{background:var(--s-ink);border-color:var(--s-ink);color:var(--s-own)}
+.dB .body{padding:4px 14px 24px;display:flex;flex-direction:column;gap:14px}
+.dB .page{background:var(--s-surface);border-radius:14px;padding:12px;box-shadow:0 2px 6px rgba(20,25,35,.12)}
+.dB .page h3{display:flex;align-items:baseline;gap:8px;margin:0 2px 10px;font-size:13px;font-weight:800;font-stretch:115%;text-transform:uppercase;letter-spacing:.03em}
+.dB .page h3 span{font-family:var(--s-mono);font-weight:500;color:var(--s-muted);letter-spacing:0}
+.dB .page h3 em{margin-left:auto;font-style:normal;font-family:var(--s-mono);font-size:12px}
+.dB .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.dB .pk{position:relative;aspect-ratio:63/80;border-radius:8px;display:flex;flex-direction:column;justify-content:space-between;padding:8px;text-align:left;border:2px dashed var(--s-line);background:transparent;min-width:0}
+.dB .pk .n{font-family:var(--s-mono);font-size:12px;font-weight:700;color:var(--s-need)}
+.dB .pk .nm{font-weight:700;font-size:13px;line-height:1.15;overflow-wrap:anywhere;color:var(--s-muted)}
+.dB .pk .fm{display:block;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+.dB .pk.own{background:var(--s-own);border:2px solid #E2B300}
+.dB .pk.own .n{color:#6A5500}
+.dB .pk.own .nm{color:var(--s-ink)}
+.dB .pk.own::after{content:"✓";position:absolute;top:6px;right:7px;font-weight:800;font-size:13px;color:var(--s-ink)}
+.dB .pk.dim{opacity:.22}
+.dB .pk.blank{border:2px solid transparent;background:rgba(27,30,36,.04);cursor:default}
+.dB .res{display:grid;grid-template-columns:40px 1fr auto;gap:12px;align-items:center;padding:12px;border-radius:12px;background:var(--s-surface);border:0;text-align:left;width:100%}
+.dB .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;width:40px;height:52px}
+.dB .mini i{background:#C3CAD4;border-radius:2px}
+.dB .mini i.hit{background:var(--s-ink)}
+.dB .res b{font-size:16px}
+.dB .res small{display:block;color:var(--s-muted);font-family:var(--s-mono);font-size:11px;margin-top:2px}
+.dB .res .st{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;padding:6px 8px;border-radius:6px;white-space:nowrap}
+.dB .res.own .st{background:var(--s-own)}
+.dB .res.need .st{background:var(--s-need);color:#FFFFFF}
+.dB .rhead{font-size:12px;color:var(--s-muted);font-family:var(--s-mono);padding:0 2px}
+
+/* ---------- C · Shop mode ---------- */
+.dC{--s-bg:#0D1530;--s-surface:#17214A;--s-ink:#EEF2FF;--s-muted:#8D99C6;--s-line:#2A3768;--s-accent:#FFCB05;--s-on-accent:#0D1530;--s-own:#3DDC97;--s-need:#FF5D73;
+  --s-font:"Manrope",system-ui,sans-serif;--s-mono:"Chakra Petch",ui-monospace,sans-serif;color-scheme:dark}
+.dC .brand{font-family:var(--s-mono);font-weight:700;letter-spacing:.16em;font-size:12px;text-transform:uppercase;color:var(--s-accent)}
+.dC .count{font-family:var(--s-mono);font-size:12px;color:var(--s-muted)}
+.dC .search{padding:0 16px 12px;flex-shrink:0}
+.dC .search input{width:100%;font-size:20px;font-weight:700;padding:16px 18px;border-radius:16px;border:2px solid var(--s-line)}
+.dC .search input::placeholder{color:var(--s-muted);font-weight:600}
+.dC .chip{padding:7px 13px;border-radius:999px;background:transparent;border:1.5px solid var(--s-line);font-family:var(--s-mono);font-weight:600;font-size:13px;white-space:nowrap}
+.dC .chip.on{background:var(--s-accent);border-color:var(--s-accent);color:var(--s-on-accent)}
+.dC .strip{padding:2px 18px 10px;font-size:13px;color:var(--s-muted);flex-shrink:0}
+.dC .strip b{color:var(--s-need)}
+.dC .body{padding:0 12px 12px}
+.dC .row{width:100%;display:grid;grid-template-columns:46px 1fr 88px;align-items:center;gap:10px;padding:7px 7px 7px 12px;margin-bottom:6px;border-radius:14px;background:var(--s-surface);border:0;text-align:left}
+.dC .no{font-family:var(--s-mono);color:var(--s-muted);font-size:14px}
+.dC .nm{font-weight:700;font-size:16px;min-width:0}
+.dC .nm small{display:block;font-weight:500;font-size:12px;color:var(--s-muted)}
+.dC .st{font-family:var(--s-mono);font-weight:700;font-size:15px;letter-spacing:.08em;text-align:center;padding:11px 0;border-radius:10px}
+.dC .row.need .st{background:var(--s-need);color:#2B0710}
+.dC .row.own{background:rgba(23,33,74,.55)}
+.dC .row.own .nm{color:var(--s-muted)}
+.dC .row.own .st{color:var(--s-own);border:2px solid rgba(61,220,151,.5);padding:9px 0}
+.dC .verdict{display:block;width:100%;text-align:left;border:0;border-radius:20px;padding:18px 20px;margin-bottom:10px}
+.dC .verdict .meta{font-family:var(--s-mono);font-size:13px;opacity:.8}
+.dC .verdict .vn{font-size:26px;font-weight:800;letter-spacing:-.01em;margin:2px 0 6px}
+.dC .verdict .vv{font-family:var(--s-mono);font-weight:700;font-size:38px;line-height:1;letter-spacing:.04em}
+.dC .verdict .vh{font-size:12px;margin-top:10px;opacity:.75}
+.dC .verdict.need{background:var(--s-need);color:#2B0710}
+.dC .verdict.own{background:var(--s-surface);box-shadow:inset 0 0 0 2px var(--s-own)}
+.dC .verdict.own .vv{color:var(--s-own)}
+.dC .nav{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;border-top:1px solid var(--s-line);background:#0A1128;padding:8px 10px 18px;flex-shrink:0}
+.dC .nav button{background:none;border:0;padding:10px 4px;border-radius:10px;font-family:var(--s-mono);font-weight:600;font-size:14px;color:var(--s-muted)}
+.dC .nav button.on{color:var(--s-accent);background:var(--s-surface)}
+.dC .nav button b{color:var(--s-need);margin-left:4px}
+</style>
+
+<div class="wrap">
+  <header class="hd">
+    <h1>Binder Dex<span>.</span></h1>
+    <p>Three directions for checking which Pokémon are already in your binders. Each mockup works: switch generations, search, show only missing, tap a Pokémon to mark it, and open the edit screen.</p>
+  </header>
+
+  <div class="switch" role="group" aria-label="Design direction">
+    <button type="button" data-design="A" aria-pressed="true"><span class="ltr">A</span><b>Checklist</b><small>A set checklist you can tap</small></button>
+    <button type="button" data-design="B" aria-pressed="false"><span class="ltr">B</span><b>Binder pages</b><small>9-pocket pages, like your binder</small></button>
+    <button type="button" data-design="C" aria-pressed="false"><span class="ltr">C</span><b>Shop mode</b><small>Search first, giant answers</small></button>
+  </div>
+
+  <div class="stage">
+    <div class="phone"><div id="screen" class="screen dA"></div></div>
+    <section class="notes" id="notes" aria-live="polite"></section>
+  </div>
+</div>
+
+<script>
+const REG={Alola:'Alolan',Galar:'Galarian',Hisui:'Hisuian',Paldea:'Paldean'};
+const GENS=[
+ {id:1,roman:'I',region:'Kanto',start:1,total:151,names:"Bulbasaur|Ivysaur|Venusaur|Charmander|Charmeleon|Charizard|Squirtle|Wartortle|Blastoise|Caterpie|Metapod|Butterfree|Weedle|Kakuna|Beedrill|Pidgey|Pidgeotto|Pidgeot|Rattata|Raticate|Spearow|Fearow|Ekans|Arbok|Pikachu|Raichu|Sandshrew|Sandslash|Nidoran♀|Nidorina|Nidoqueen|Nidoran♂|Nidorino|Nidoking|Clefairy|Clefable|Vulpix|Ninetales|Jigglypuff|Wigglytuff|Zubat|Golbat|Oddish|Gloom|Vileplume|Paras|Parasect|Venonat|Venomoth|Diglett|Dugtrio|Meowth|Persian|Psyduck|Golduck|Mankey|Primeape|Growlithe|Arcanine|Poliwag|Poliwhirl|Poliwrath|Abra|Kadabra|Alakazam|Machop|Machoke|Machamp|Bellsprout|Weepinbell|Victreebel|Tentacool|Tentacruel|Geodude|Graveler|Golem|Ponyta|Rapidash|Slowpoke|Slowbro|Magnemite|Magneton|Farfetch'd|Doduo|Dodrio|Seel|Dewgong|Grimer|Muk|Shellder|Cloyster|Gastly|Haunter|Gengar|Onix|Drowzee|Hypno|Krabby|Kingler|Voltorb|Electrode|Exeggcute|Exeggutor|Cubone|Marowak|Hitmonlee|Hitmonchan|Lickitung|Koffing|Weezing|Rhyhorn|Rhydon|Chansey|Tangela|Kangaskhan|Horsea|Seadra|Goldeen|Seaking|Staryu|Starmie|Mr. Mime|Scyther|Jynx|Electabuzz|Magmar|Pinsir|Tauros|Magikarp|Gyarados|Lapras|Ditto|Eevee|Vaporeon|Jolteon|Flareon|Porygon|Omanyte|Omastar|Kabuto|Kabutops|Aerodactyl|Snorlax|Articuno|Zapdos|Moltres|Dratini|Dragonair|Dragonite|Mewtwo|Mew"},
+ {id:2,roman:'II',region:'Johto',start:152,total:100,names:"Chikorita|Bayleef|Meganium|Cyndaquil|Quilava|Typhlosion|Totodile|Croconaw|Feraligatr|Sentret|Furret|Hoothoot|Noctowl|Ledyba|Ledian|Spinarak|Ariados|Crobat"},
+ {id:3,roman:'III',region:'Hoenn',start:252,total:135,names:"Treecko|Grovyle|Sceptile|Torchic|Combusken|Blaziken|Mudkip|Marshtomp|Swampert|Poochyena|Mightyena|Zigzagoon|Linoone|Wurmple|Silcoon|Beautifly|Cascoon|Dustox"},
+ {id:4,roman:'IV',region:'Sinnoh',start:387,total:107,names:"Turtwig|Grotle|Torterra|Chimchar|Monferno|Infernape|Piplup|Prinplup|Empoleon"},
+ {id:5,roman:'V',region:'Unova',start:494,total:156,names:"Victini|Snivy|Servine|Serperior|Tepig|Pignite|Emboar|Oshawott|Dewott|Samurott"},
+ {id:6,roman:'VI',region:'Kalos',start:650,total:72,names:"Chespin|Quilladin|Chesnaught|Fennekin|Braixen|Delphox|Froakie|Frogadier|Greninja"},
+ {id:7,roman:'VII',region:'Alola',start:722,total:88,names:"Rowlet|Dartrix|Decidueye|Litten|Torracat|Incineroar|Popplio|Brionne|Primarina"},
+ {id:8,roman:'VIII',region:'Galar',start:810,total:96,names:"Grookey|Thwackey|Rillaboom|Scorbunny|Raboot|Cinderace|Sobble|Drizzile|Inteleon"},
+ {id:9,roman:'IX',region:'Paldea',start:906,total:120,names:"Sprigatito|Floragato|Meowscarada|Fuecoco|Crocalor|Skeledirge|Quaxly|Quaxwell|Quaquaval"}
+].map(g=>({...g,names:g.names.split('|')}));
+const FORMS={19:['Alola'],20:['Alola'],26:['Alola'],27:['Alola'],28:['Alola'],37:['Alola'],38:['Alola'],50:['Alola'],51:['Alola'],52:['Alola','Galar'],53:['Alola'],58:['Hisui'],59:['Hisui'],74:['Alola'],75:['Alola'],76:['Alola'],77:['Galar'],78:['Galar'],79:['Galar'],80:['Galar'],83:['Galar'],88:['Alola'],89:['Alola'],100:['Hisui'],101:['Hisui'],103:['Alola'],105:['Alola'],110:['Galar'],122:['Galar'],128:['Paldea'],144:['Galar'],145:['Galar'],146:['Galar'],157:['Hisui'],263:['Galar'],264:['Galar'],503:['Hisui'],724:['Hisui']};
+
+function buildList(){
+  const out=[];
+  for(const g of GENS) g.names.forEach((name,i)=>{
+    const num=g.start+i;
+    out.push({id:String(num),num,name,gen:g.id,form:null});
+    (FORMS[num]||[]).forEach(f=>out.push({id:num+'-'+f,num,name,gen:g.id,form:f}));
+  });
+  return out;
+}
+
+const S={design:'A',gen:1,q:'',missing:false,view:'dex',adminGen:1,list:buildList(),owned:new Set(),confirmDel:null,flash:null,toast:null,resetScroll:false};
+S.list.forEach(e=>{ if(((e.num*37+(e.form?11:0))%10)<6) S.owned.add(e.id); });
+
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(3,'0');
+const label=e=>e.form?REG[e.form]+' '+e.name:e.name;
+const gen=id=>GENS[id-1];
+const has=e=>S.owned.has(e.id);
+const genItems=id=>S.list.filter(e=>e.gen===id);
+const searching=()=>S.q.trim().length>0;
+function searchItems(){
+  const q=S.q.trim().toLowerCase(), n=q.replace('#','');
+  return S.list.filter(e=>label(e).toLowerCase().includes(q)||(/^\d+$/.test(n)&&e.num===+n));
+}
+function visible(){
+  let items=searching()?searchItems():genItems(S.gen);
+  if(S.missing) items=items.filter(e=>!has(e));
+  return items;
+}
+function locate(e){const items=genItems(e.gen);const i=items.indexOf(e);return {page:Math.floor(i/9)+1,slot:i%9+1};}
+function partialNote(id){const g=gen(id);return g.names.length<g.total?`<div class="partial">Mockup data: showing the first ${g.names.length} of ${g.total} Gen ${g.roman} Pokémon. The real site imports them all.</div>`:'';}
+const chips=(act,cur,style)=>GENS.map(g=>`<button class="chip${g.id===cur?' on':''}" data-act="${act}" data-gen="${g.id}" aria-pressed="${g.id===cur}">${style==='stack'?`<b>${g.roman}</b><small>${g.region}</small>`:style==='tab'?`${g.roman}<small>${g.region}</small>`:`Gen ${g.roman}`}</button>`).join('');
+const searchInput=(ph)=>`<input id="q" type="search" placeholder="${ph}" value="${esc(S.q)}" autocomplete="off" aria-label="Search Pokémon">`;
+
+/* ---------- A ---------- */
+function renderA(){
+  const items=visible(), g=gen(S.gen), all=genItems(S.gen), own=all.filter(has).length;
+  const sum=searching()
+    ?`<div class="sum"><span>${items.length} result${items.length===1?'':'s'} in every generation</span></div>`
+    :`<div class="sum"><span>Gen ${g.roman} · ${g.region}</span><span><b>${own}</b> / ${all.length} owned</span><div class="bar"><i style="width:${Math.round(own/all.length*100)}%"></i></div></div>`;
+  const rows=items.map(e=>{const o=has(e);return `<li><button class="row ${o?'own':'need'}${e.form?' form':''}" data-act="toggle" data-id="${e.id}" aria-pressed="${o}"><span class="box" aria-hidden="true"></span><span class="no">#${pad(e.num)}</span><span class="nm">${esc(label(e))}${searching()?`<small>Gen ${gen(e.gen).roman}</small>`:''}</span><span class="st">${o?'Have':'Need'}</span></button></li>`}).join('');
+  return `<div class="top"><div class="brand">Dex checklist</div><button class="edit" data-act="admin">Edit list</button></div>
+  <nav class="gens" aria-label="Generation">${chips('gen',searching()?0:S.gen,'stack')}</nav>
+  <div class="tools">${searchInput('Search name or #')}<button class="toggle${S.missing?' on':''}" data-act="missing" aria-pressed="${S.missing}">Only missing</button></div>
+  ${sum}
+  <div class="body"><ol class="list">${rows||`<li class="empty">${S.missing?'Nothing missing here. This generation is complete.':'No Pokémon match that search.'}</li>`}</ol>${searching()?'':partialNote(S.gen)}</div>`;
+}
+
+/* ---------- B ---------- */
+function renderB(){
+  const g=gen(S.gen), all=genItems(S.gen), own=all.filter(has).length, pages=Math.ceil(all.length/9);
+  let body='';
+  if(searching()){
+    const items=visible();
+    body=`<div class="rhead">${items.length} match${items.length===1?'':'es'} · tap to mark</div>`+items.map(e=>{const o=has(e),L=locate(e);
+      return `<button class="res ${o?'own':'need'}" data-act="toggle" data-id="${e.id}" aria-pressed="${o}"><span class="mini" aria-hidden="true">${Array.from({length:9},(_,i)=>`<i class="${i+1===L.slot?'hit':''}"></i>`).join('')}</span><span><b>${esc(label(e))}</b><small>#${pad(e.num)} · Gen ${gen(e.gen).roman} · page ${L.page}, slot ${L.slot}</small></span><span class="st">${o?'In binder':'Missing'}</span></button>`}).join('')||`<div class="empty">No Pokémon match that search.</div>`;
+  } else {
+    for(let p=0;p<pages;p++){
+      const chunk=all.slice(p*9,p*9+9), f=chunk[0], l=chunk[chunk.length-1];
+      const pk=chunk.map(e=>{const o=has(e);return `<button class="pk ${o?'own':'need'}${S.missing&&o?' dim':''}" data-act="toggle" data-id="${e.id}" aria-pressed="${o}" aria-label="${esc(label(e))}, ${o?'in binder':'missing'}"><span class="n">${pad(e.num)}</span><span class="nm">${e.form?`<span class="fm">${REG[e.form]}</span>`:''}${esc(e.name)}</span></button>`}).join('')
+        + Array.from({length:9-chunk.length},()=>`<span class="pk blank" aria-hidden="true"></span>`).join('');
+      body+=`<section class="page"><h3>Page ${p+1}<span>#${pad(f.num)}–${pad(l.num)}</span><em>${chunk.filter(has).length}/${chunk.length}</em></h3><div class="grid">${pk}</div></section>`;
+    }
+    body+=partialNote(S.gen);
+  }
+  return `<div class="top"><div class="brand">Binder Dex</div><button class="edit" data-act="admin">Edit</button></div>
+  <div class="tools">${searchInput('Find a Pokémon')}<button class="toggle${S.missing?' on':''}" data-act="missing" aria-pressed="${S.missing}">Missing</button></div>
+  <nav class="gens" aria-label="Generation">${chips('gen',searching()?0:S.gen,'tab')}</nav>
+  ${searching()?'':`<div class="meta"><span>${pages} pages · ${all.length} pockets</span><span><b>${own}</b> filled · <b>${all.length-own}</b> empty</span></div>`}
+  <div class="body">${body}</div>`;
+}
+
+/* ---------- C ---------- */
+function renderC(){
+  const items=visible(), g=gen(S.gen), all=genItems(S.gen), need=all.filter(e=>!has(e)).length;
+  const totalNeed=S.list.filter(e=>!has(e)).length;
+  let body;
+  if(searching() && items.length && items.length<=3){
+    body=items.map(e=>{const o=has(e);return `<button class="verdict ${o?'own':'need'}" data-act="toggle" data-id="${e.id}" aria-pressed="${o}"><div class="meta">#${pad(e.num)} · Gen ${gen(e.gen).roman} ${gen(e.gen).region}</div><div class="vn">${esc(label(e))}</div><div class="vv">${o?'GOT IT':'NEED IT'}</div><div class="vh">${o?'Tap if you no longer have it':'Bought it? Tap to mark as owned'}</div></button>`}).join('');
+  } else {
+    body=items.map(e=>{const o=has(e);return `<button class="row ${o?'own':'need'}" data-act="toggle" data-id="${e.id}" aria-pressed="${o}"><span class="no">${pad(e.num)}</span><span class="nm">${esc(label(e))}<small>${searching()?'Gen '+gen(e.gen).roman+' · ':''}${e.form?REG[e.form]+' form':gen(e.gen).region}</small></span><span class="st">${o?'HAVE':'NEED'}</span></button>`}).join('')
+      ||`<div class="empty">${S.missing?'You have every Gen '+g.roman+' Pokémon on this list.':'Nothing matches. Try the Pokédex number.'}</div>`;
+    if(!searching()) body+=partialNote(S.gen);
+  }
+  const strip=searching()?`${items.length} result${items.length===1?'':'s'}`:S.missing?`Shopping list · <b>${need}</b> to find in Gen ${g.roman}`:`Gen ${g.roman} ${g.region} · <b>${need}</b> missing of ${all.length}`;
+  return `<div class="top"><div class="brand">Shop mode</div><div class="count">${S.owned.size} owned</div></div>
+  <div class="search">${searchInput('Do we have…?')}</div>
+  <nav class="gens" aria-label="Generation">${chips('gen',searching()?0:S.gen,'plain')}</nav>
+  <div class="strip">${strip}</div>
+  <div class="body">${body}</div>
+  <nav class="nav"><button class="${!S.missing?'on':''}" data-act="dex">Dex</button><button class="${S.missing?'on':''}" data-act="onlymissing">Missing<b>${totalNeed}</b></button><button data-act="admin">Edit</button></nav>`;
+}
+
+/* ---------- Admin (shared) ---------- */
+function renderAdmin(){
+  const g=gen(S.adminGen), items=genItems(S.adminGen);
+  const rows=items.map((e,i)=>`<li class="arow"><span class="pos">${i+1}</span><span class="no">#${pad(e.num)}</span><span class="nmw"><input id="nm-${e.id}" class="aname" data-id="${e.id}" value="${esc(e.name)}" aria-label="Name for #${e.num}">${e.form?`<span class="ftag">${e.form}</span>`:''}</span><span class="ctrls"><button data-act="up" data-id="${e.id}" aria-label="Move up"${i===0?' disabled':''}>↑</button><button data-act="down" data-id="${e.id}" aria-label="Move down"${i===items.length-1?' disabled':''}>↓</button><button class="del${S.confirmDel===e.id?' confirm':''}" data-act="del" data-id="${e.id}" aria-label="Remove ${esc(label(e))}">${S.confirmDel===e.id?'Remove?':'✕'}</button></span></li>`).join('');
+  return `<div class="top"><button class="back" data-act="back">← Done</button><div class="brand">Edit list</div><span style="width:52px"></span></div>
+  <nav class="gens" aria-label="Generation">${chips('agen',S.adminGen,S.design==='A'?'stack':S.design==='B'?'tab':'plain')}</nav>
+  <form class="add" id="addForm"><div class="add-h">Add a Pokémon to Gen ${g.roman}</div>
+    <input id="a-num" inputmode="numeric" placeholder="#" aria-label="Pokédex number" required>
+    <input id="a-name" placeholder="Name" aria-label="Name" required>
+    <div class="r2"><select id="a-form" aria-label="Form"><option value="">Base form</option><option>Alola</option><option>Galar</option><option>Hisui</option><option>Paldea</option></select><button type="submit">Add</button></div>
+  </form>
+  <div class="ahint">${items.length} entries. Use the arrows to change the order. Tap a name to rename it.</div>
+  <div class="body"><ol class="alist">${rows}</ol><button class="resync" data-act="resync">Re-import Gen ${g.roman} from PokéAPI</button></div>`;
+}
+
+/* ---------- Notes ---------- */
+const NOTES={
+ A:{name:'Checklist',tag:'A set checklist, made tappable.',
+    pitch:'Every Pokémon is one line with a checkbox, like the checklist sheet that comes with a booster box. Regional forms sit indented right under their base form. It is the most compact of the three, so a whole generation scrolls by quickly.',
+    have:'Filled blue checkbox and a quiet “Have”.',need:'Empty box and a red NEED tag on the right edge.',
+    best:'Going through the list at home while you sort cards into binders.',trade:'At a shop you still read row by row. It is the least glanceable of the three.'},
+ B:{name:'Binder pages',tag:'Your binder, on your phone.',
+    pitch:'Each generation is laid out as 9-pocket pages in the same order as your binder, so gaps on screen match gaps in the real thing. Searching tells you the exact page and slot where a card belongs.',
+    have:'Solid yellow pocket with a check, like a filled sleeve.',need:'Empty dashed pocket with a red number.',
+    best:'Seeing gaps at a glance and knowing where a new card goes.',trade:'Assumes your binders follow Pokédex order at 9 per page. Pocket names are small on narrow phones.'},
+ C:{name:'Shop mode',tag:'One question, answered loudly.',
+    pitch:'Dark, search-first, with big touch targets. Type a name and you get a giant NEED IT or GOT IT. The Missing tab at the bottom is your shopping list, always one tap away.',
+    have:'Dimmed row with a green outlined HAVE.',need:'Solid coral NEED button, the loudest thing on screen.',
+    best:'Standing at a shop counter with one hand and bad lighting.',trade:'Less of a collection overview. It is built for quick yes/no checks.'}
+};
+function renderNotes(){
+  const n=NOTES[S.design];
+  document.getElementById('notes').innerHTML=`<h2>${n.name}</h2><p class="tag">${n.tag}</p><p class="pitch">${n.pitch}</p>
+  <dl><dt>Owned looks like</dt><dd>${n.have}</dd><dt>Missing looks like</dt><dd>${n.need}</dd><dt>Best at</dt><dd>${n.best}</dd><dt>Tradeoff</dt><dd>${n.trade}</dd></dl>
+  <h3>Same in all three</h3>
+  <ul><li>Generations I to IX, with Alolan, Galarian, Hisuian and Paldean forms placed after their base form</li>
+  <li>Search every generation by name or Pokédex number</li>
+  <li>An only-missing view for each generation</li>
+  <li>One tap marks a Pokémon as owned or not</li>
+  <li>An edit screen to add, rename, reorder and remove entries</li>
+  <li>Built for phones first, works on a laptop too</li></ul>
+  <p class="fine">Mockup data: Gen I is complete with its regional forms; other generations show their first few Pokémon. Changes you make here reset when you reload.</p>`;
+}
+
+/* ---------- Render + events ---------- */
+const screen=document.getElementById('screen');
+function render(){
+  const a=document.activeElement, fid=a&&screen.contains(a)?a.id:null, sel=fid&&a.selectionStart!=null?a.selectionStart:null;
+  const oldBody=screen.querySelector('.body'), st=oldBody?oldBody.scrollTop:0;
+  screen.className='screen d'+S.design;
+  screen.innerHTML=(S.view==='admin'?renderAdmin():{A:renderA,B:renderB,C:renderC}[S.design]())+(S.toast?`<div class="toast" role="status">${S.toast}</div>`:'');
+  const nb=screen.querySelector('.body'); if(nb&&!S.resetScroll) nb.scrollTop=st; S.resetScroll=false;
+  if(fid){const el=document.getElementById(fid); if(el){el.focus(); if(sel!=null&&el.setSelectionRange) try{el.setSelectionRange(sel,sel)}catch(e){}}}
+  if(S.flash){const el=screen.querySelector(`[data-act="toggle"][data-id="${CSS.escape(S.flash)}"]`); if(el) el.classList.add('pop'); S.flash=null;}
+  document.querySelectorAll('.switch button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.design===S.design));
+  renderNotes();
+}
+let toastT;
+function toast(msg){S.toast=msg;clearTimeout(toastT);toastT=setTimeout(()=>{S.toast=null;render()},2200);}
+function move(id,dir){
+  const i=S.list.findIndex(e=>e.id===id), g=S.list[i].gen;
+  let j=i+dir; while(j>=0&&j<S.list.length&&S.list[j].gen!==g) j+=dir;
+  if(j<0||j>=S.list.length) return;
+  [S.list[i],S.list[j]]=[S.list[j],S.list[i]];
+}
+
+screen.addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-act]'); if(!b||b.disabled) return;
+  const id=b.dataset.id, act=b.dataset.act;
+  if(act!=='del') S.confirmDel=null;
+  switch(act){
+    case 'toggle': S.owned.has(id)?S.owned.delete(id):S.owned.add(id); S.flash=id; break;
+    case 'gen': S.gen=+b.dataset.gen; S.q=''; S.resetScroll=true; break;
+    case 'agen': S.adminGen=+b.dataset.gen; S.resetScroll=true; break;
+    case 'missing': S.missing=!S.missing; S.resetScroll=true; break;
+    case 'dex': S.missing=false; S.q=''; S.resetScroll=true; break;
+    case 'onlymissing': S.missing=true; S.q=''; S.resetScroll=true; break;
+    case 'admin': S.view='admin'; S.adminGen=S.gen; S.resetScroll=true; break;
+    case 'back': S.view='dex'; S.resetScroll=true; break;
+    case 'up': move(id,-1); break;
+    case 'down': move(id,1); break;
+    case 'del':
+      if(S.confirmDel===id){const e=S.list.find(x=>x.id===id); S.list=S.list.filter(x=>x.id!==id); S.owned.delete(id); S.confirmDel=null; toast('Removed '+label(e));}
+      else S.confirmDel=id;
+      break;
+    case 'resync': toast('Re-imported Gen '+gen(S.adminGen).roman+'. Your owned marks were kept.'); break;
+  }
+  render();
+});
+screen.addEventListener('input',ev=>{ if(ev.target.id==='q'){S.q=ev.target.value;S.resetScroll=true;render();} });
+screen.addEventListener('change',ev=>{
+  const t=ev.target; if(!t.classList.contains('aname')) return;
+  const e=S.list.find(x=>x.id===t.dataset.id), v=t.value.trim();
+  if(e&&v){e.name=v; toast('Renamed to '+v);} render();
+});
+screen.addEventListener('submit',ev=>{
+  ev.preventDefault();
+  const num=parseInt(document.getElementById('a-num').value,10), name=document.getElementById('a-name').value.trim(), form=document.getElementById('a-form').value||null;
+  if(!num||!name){toast('Add a Pokédex number and a name.');render();return;}
+  const e={id:'c'+Date.now(),num,name,gen:S.adminGen,form};
+  let at=-1; S.list.forEach((x,i)=>{if(x.gen===S.adminGen&&x.num<=num) at=i;});
+  if(at<0) at=S.list.findIndex(x=>x.gen===S.adminGen)-1;
+  S.list.splice(at+1,0,e);
+  toast('Added '+label(e)+' to Gen '+gen(S.adminGen).roman); render();
+});
+document.querySelector('.switch').addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-design]'); if(!b) return;
+  S.design=b.dataset.design; S.resetScroll=true; render();
+});
+render();
+</script>

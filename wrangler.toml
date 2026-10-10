@@ -1,0 +1,13 @@
+# Cloudflare Pages config. Bindings here are used by `nuxt dev` (local D1),
+# `wrangler pages dev`, and by Pages deployments.
+name = "binder-dex"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-10-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "binder-dex"
+# Replace with the id printed by `npx wrangler d1 create binder-dex`
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
