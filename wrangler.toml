@@ -9,5 +9,5 @@ compatibility_flags = ["nodejs_compat"]
 binding = "DB"
 database_name = "binder-dex"
 # Replace with the id printed by `npx wrangler d1 create binder-dex`
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "f0f12775-5b45-476a-84df-6eacdd7988e2"
 migrations_dir = "migrations"
