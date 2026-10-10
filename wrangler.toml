@@ -1,13 +1,13 @@
 # Cloudflare Pages config. Bindings here are used by `nuxt dev` (local D1),
 # `wrangler pages dev`, and by Pages deployments.
-name = "binder-dex"
+name = "pokedex-checker"
 pages_build_output_dir = "dist"
 compatibility_date = "2026-10-01"
 compatibility_flags = ["nodejs_compat"]
 
 [[d1_databases]]
 binding = "DB"
-database_name = "binder-dex"
-# Replace with the id printed by `npx wrangler d1 create binder-dex`
+database_name = "pokedex"
+# Replace with the id printed by `npx wrangler d1 create pokedex`
 database_id = "f0f12775-5b45-476a-84df-6eacdd7988e2"
 migrations_dir = "migrations"
