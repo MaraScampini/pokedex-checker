@@ -15,8 +15,11 @@ const marking = useState('marking', () => false)
 onMounted(() => load().catch(() => {}))
 
 const searching = computed(() => q.value.trim().length > 0)
+// gen 0 shows every generation on one screen.
+const allGens = computed(() => gen.value === 0)
 const g = computed(() => genInfo(gen.value))
-const inGen = computed(() => entries.value.filter((e) => e.gen === gen.value))
+const label = computed(() => (allGens.value ? 'All generations' : `Gen ${g.value.roman}`))
+const inGen = computed(() => (allGens.value ? entries.value : entries.value.filter((e) => e.gen === gen.value)))
 const ownedCount = computed(() => inGen.value.filter((e) => e.owned).length)
 const pct = computed(() => (inGen.value.length ? Math.round((ownedCount.value / inGen.value.length) * 100) : 0))
 
@@ -62,7 +65,7 @@ function pickGen(id: number) {
         <NuxtLink class="btn" to="/edit">Edit list</NuxtLink>
       </div>
       <div v-if="marking" class="marking-bar" role="status">Marking is on. Tap to switch Have / Need.</div>
-      <GenChips :current="searching ? 0 : gen" @pick="pickGen" />
+      <GenChips all :current="searching ? -1 : gen" @pick="pickGen" />
       <div class="tools">
         <div class="searchbox">
           <input
@@ -83,6 +86,7 @@ function pickGen(id: number) {
       </div>
       <div class="sum">
         <span v-if="searching">{{ items.length }} result{{ items.length === 1 ? '' : 's' }} in every generation</span>
+        <span v-else-if="allGens">All generations · I–IX</span>
         <span v-else>Gen {{ g.roman }} · {{ g.region }}</span>
         <div class="sum-right">
           <span v-if="!searching"><b>{{ ownedCount }}</b> / {{ inGen.length }}</span>
@@ -109,14 +113,14 @@ function pickGen(id: number) {
         >
           <span class="box" aria-hidden="true" />
           <span class="no">{{ e.dex ? '#' + pad(e.dex) : '—' }}</span>
-          <span class="nm">{{ e.name }}<small v-if="searching">Gen {{ genInfo(e.gen).roman }}</small></span>
+          <span class="nm">{{ e.name }}<small v-if="searching || allGens">Gen {{ genInfo(e.gen).roman }}</small></span>
           <span class="st">{{ e.owned ? 'Have' : 'Need' }}</span>
         </button>
       </li>
       <li v-if="!items.length" class="empty">
         <template v-if="searching">No Pokémon match “{{ q.trim() }}”{{ missingOnly ? ' that you still need' : '' }}. Try the Pokédex number.</template>
-        <template v-else-if="missingOnly && inGen.length">Nothing missing. Gen {{ g.roman }} is complete.</template>
-        <template v-else>Gen {{ g.roman }} has no Pokémon yet. Add them from Edit list.</template>
+        <template v-else-if="missingOnly && inGen.length">Nothing missing. {{ label }} {{ allGens ? 'are' : 'is' }} complete.</template>
+        <template v-else>{{ label }} {{ allGens ? 'have' : 'has' }} no Pokémon yet. Add them from Edit list.</template>
       </li>
     </ol>
   </div>

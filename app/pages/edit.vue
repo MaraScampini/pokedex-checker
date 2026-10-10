@@ -5,7 +5,7 @@ import { genInfo } from '~~/shared/gens'
 
 const { entries, loaded, load, update, move, add, remove, reset } = useEntries()
 const { show } = useToast()
-const gen = usePersisted('editGen', usePersisted('gen', 1).value)
+const gen = usePersisted('editGen', usePersisted('gen', 1).value || 1)
 const name = ref('')
 const dex = ref<number | ''>('')
 const position = ref<number | ''>('')
