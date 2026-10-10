@@ -5,7 +5,7 @@ export default defineNuxtConfig({
   modules: ['@nuxtjs/google-fonts', 'nitro-cloudflare-dev'],
   css: ['~/assets/css/main.css'],
   nitro: {
-    preset: 'cloudflare-pages'
+    preset: 'cloudflare-module'
   },
   googleFonts: {
     display: 'swap',

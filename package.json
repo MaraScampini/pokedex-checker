@@ -5,11 +5,11 @@
   "scripts": {
     "dev": "nuxt dev",
     "build": "nuxt build",
-    "preview": "npm run build && wrangler pages dev",
+    "preview": "npm run build && wrangler dev",
     "typecheck": "nuxt typecheck",
     "seed:build": "node scripts/build-seed.mjs",
-    "db:migrate:local": "wrangler d1 migrations apply binder-dex --local",
-    "db:migrate:remote": "wrangler d1 migrations apply binder-dex --remote"
+    "db:migrate:local": "wrangler d1 migrations apply DB --local",
+    "db:migrate:remote": "wrangler d1 migrations apply DB --remote"
   },
   "dependencies": {
     "@nuxtjs/google-fonts": "^3.2.0",

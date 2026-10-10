@@ -1,7 +1,8 @@
-# Cloudflare Pages config. Bindings here are used by `nuxt dev` (local D1),
-# `wrangler pages dev`, and by Pages deployments.
+# Cloudflare Workers config. Run `npm run build` first; `npx wrangler deploy`
+# then uploads the built worker and static files. The bindings below are also
+# used by `nuxt dev` (local D1).
 name = "pokedex-checker"
-pages_build_output_dir = "dist"
+main = ".output/server/index.mjs"
 compatibility_date = "2026-10-01"
 compatibility_flags = ["nodejs_compat"]
 
@@ -11,3 +12,7 @@ database_name = "pokedex"
 # Replace with the id printed by `npx wrangler d1 create pokedex`
 database_id = "f0f12775-5b45-476a-84df-6eacdd7988e2"
 migrations_dir = "migrations"
+
+[assets]
+directory = ".output/public"
+binding = "ASSETS"
